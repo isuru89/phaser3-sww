@@ -1,12 +1,8 @@
 import { EventEmitter } from "events";
 import { Items } from "./items";
-
-export class BallConfigs {
-  id: number;
-  size: number = 2;
-  x: number;
-  y: number;
-}
+import { ALL_BALLS_CLEARED } from "./events";
+import { BallConfigs } from "../configs/config-models";
+import { BALL_BOUNCE_LOSS, BALL_MASS, BALL_DEFAULT_VELOCITY_X, BALL_DEFAULT_VELOCITY_Y } from "../configs/game-configs";
 
 export class Balls extends Phaser.Physics.Arcade.Group {
 
@@ -20,13 +16,22 @@ export class Balls extends Phaser.Physics.Arcade.Group {
 
     for (let index = 0; index < ballsArray.length; index++) {
       const b = ballsArray[index];
-      const ball = this.create(b.x, b.y, 'dude') as Phaser.Physics.Arcade.Sprite;
-      ball.play('ballspin');
-      ball.body.setCircle(22, 2, 2 );
-      ball.setBounce(1, 0.985);
-      ball.setVelocity(120);
-      ball.setData('size', b.size);
+      const ball = this.createBall(b.x, b.y, b.size);
+      ball.body.setCircle(ball.body.width / 2);
+      ball.setVelocity(b.initVelocityX, b.initVelocityY);
     }
+  }
+
+  private createBall(x: number, y: number, size: number): Phaser.Physics.Arcade.Sprite {
+    const ball = this.create(x, y, 'ball') as Phaser.Physics.Arcade.Sprite;
+    ball.play('ballspin');
+    ball.setScale(0.3*size)
+    ball.setBounce(1, BALL_BOUNCE_LOSS);
+    ball.setMass(BALL_MASS);
+    ball.setData('size', size);
+    const { width } = ball.body;
+    ball.setCircle(width / 2)
+    return ball;
   }
 
   explodeWhenHitWith(bullets: Phaser.Physics.Arcade.Group): Balls {
@@ -43,38 +48,26 @@ export class Balls extends Phaser.Physics.Arcade.Group {
     const size: number = ball.getData('size') as number;
     if (size > 1) {
       this.scene.sound.playAudioSprite('sfx', 'alien_death');
-      const leftBall = this.create(ball.body.position.x + ball.body.width / 2, ball.body.position.y, 'ball')as Phaser.Physics.Arcade.Sprite;
-      leftBall.setScale(0.5);
-      leftBall.play('ballspin');
-      leftBall.setData('size', size - 1);
-      leftBall.setVelocity(-120, ball.body.velocity.y);
-      leftBall.setBounce(1, 0.985)
-      const rightBall = this.create(ball.body.position.x + ball.body.width / 2, ball.body.position.y, 'ball')as Phaser.Physics.Arcade.Sprite;
-      rightBall.setScale(0.5);
-      rightBall.play('ballspin');
-      rightBall.setData('size', size - 1);
-      rightBall.setVelocity(120, ball.body.velocity.y);
-      rightBall.setBounce(1, 0.985)
+      const leftBall = this.createBall(ball.body.position.x + ball.body.width / 2, ball.body.position.y, size - 1) as Phaser.Physics.Arcade.Sprite;
+      leftBall.setVelocity(-1 * BALL_DEFAULT_VELOCITY_X, -1 * BALL_DEFAULT_VELOCITY_Y);
+      const rightBall = this.createBall(ball.body.position.x + ball.body.width / 2, ball.body.position.y, size - 1)as Phaser.Physics.Arcade.Sprite;
+      rightBall.setVelocity(BALL_DEFAULT_VELOCITY_X, -1 * BALL_DEFAULT_VELOCITY_Y);
     }
   }
 
   private explodeUntilSmallest(ball: Phaser.Physics.Arcade.Sprite) {
+    if (!ball.active) return;
     const size: number = ball.getData('size') as number;
     if (size > 1) {
       const diff = size - 1;
-      ball.disableBody(true, true);
-      console.log(diff, size)
       for (let idx = 0; idx < diff; idx++) {
-        const leftBall = this.create(ball.body.position.x + ball.body.width / 2, ball.body.position.y, 'ball')as Phaser.Physics.Arcade.Sprite;
-        leftBall.setData('size', 1);
-        leftBall.setVelocity(-120, ball.body.velocity.y);
-        leftBall.setBounce(1, 0.985)
-        const rightBall = this.create(ball.body.position.x + ball.body.width / 2, ball.body.position.y, 'ball')as Phaser.Physics.Arcade.Sprite;
-        rightBall.setData('size', 1);
-        rightBall.setVelocity(120, ball.body.velocity.y);
-        rightBall.setBounce(1, 0.985)
+        const leftBall = this.createBall(ball.body.position.x + ball.body.width / 2, ball.body.position.y, 1);
+        leftBall.setVelocity(-1 * BALL_DEFAULT_VELOCITY_X, -1 * BALL_DEFAULT_VELOCITY_Y);
+        const rightBall = this.createBall(ball.body.position.x + ball.body.width / 2, ball.body.position.y, 1);
+        rightBall.setVelocity(BALL_DEFAULT_VELOCITY_X, -1 * BALL_DEFAULT_VELOCITY_Y);
       }
-    }
+      ball.disableBody(true, true);
+    } 
   }
 
 
@@ -89,7 +82,7 @@ export class Balls extends Phaser.Physics.Arcade.Group {
     this.explodeSingle(ball);
 
     if (this.countActive(true) === 0) {
-      this.emitter.emit('allballscleared');
+      this.emitter.emit(ALL_BALLS_CLEARED);
     }
   } 
 

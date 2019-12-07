@@ -4,6 +4,7 @@ export class Scoring {
 
   private initialScore: number;
   private lives = 3;
+  private ammos = 100;
   private scoreText: Phaser.GameObjects.Text;
 
   constructor(private scene: Scene, private score: number = 0) {
@@ -23,7 +24,12 @@ export class Scoring {
   }
 
   private updateView() {
-    this.scoreText.setText(`Score: ${this.score}, Lives: ${this.lives}`);
+    this.scoreText.setText(`Score: ${this.score}, Lives: ${this.lives}, Ammo: ${this.ammos}`);
+  }
+
+  updateAmmosBy(ammosDiff: number = -1) {
+    this.ammos += ammosDiff;
+    this.updateView();
   }
 
   updatePointsBy(points: number = 0) {
@@ -34,6 +40,10 @@ export class Scoring {
   updateLivesBy(lives: number = 0) {
     this.lives += lives;
     this.updateView();
+  }
+
+  hasAmmos() {
+    return this.ammos > 0;
   }
 
   hasLives() {

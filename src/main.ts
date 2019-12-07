@@ -2,7 +2,7 @@ import * as Phaser from "phaser";
 import Scenes from "./scenes";
 
 const gameConfigs: Phaser.Types.Core.GameConfig = {
-  title: 'Bridge Battle',
+  title: 'SWW',
   type: Phaser.AUTO,
 
   width: 800,

@@ -1,53 +1,78 @@
 import { EventEmitter } from "events";
+import { ITEM_COLLECTED, ITEM_EXPLODE_ONTO_PLAYER } from "./events";
+import Explosions from "./explosions";
+import { IItemDef, ItemType } from "../configs/config-models";
+import { ITEM_DEFS } from "../configs/game-configs";
 
-export enum ItemType {
-  ONE_UP = 1,
-  BULLET_DAMAGE,
-  BULLET_SPEED,
-  BONUS_POINTS,
-  INVINCIBLE,
-  DAMAGE_ALL,
-  NOTHING
-}
-
-const POINT_MAPS = {
-  [ItemType.ONE_UP]: 10,
-  [ItemType.BULLET_DAMAGE]: 10,
-  [ItemType.BULLET_SPEED]: 10,
-  [ItemType.BONUS_POINTS]: 2500,
-  [ItemType.DAMAGE_ALL]: 100,
-  [ItemType.INVINCIBLE]: 50,
-  [ItemType.NOTHING]: 0,
-}
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+};
 
 export class Items extends EventEmitter {
-  private readonly ALIVE_TIME = 4000;
   private items: Phaser.Physics.Arcade.Group;
+  private distributionArray: Array<number>;
 
-  constructor(private scene: Phaser.Scene, private player: Phaser.Physics.Arcade.Sprite) {
+  constructor(private scene: Phaser.Scene, 
+    private player: Phaser.Physics.Arcade.Sprite, 
+    private explosions: Explosions) {
     super();
 
     this.items = scene.physics.add.group({ allowGravity: false, collideWorldBounds: true });
+    this.scene.physics.add.overlap(this.player, this.items, this.collectItem, this.checkCollectible, this);
+    this.scene.physics.add.overlap(this.player, this.explosions, this.explodeItemOnPlayer, null, this);
+  }
 
-    this.scene.physics.add.overlap(player, this.items, this.collectItem, null, this);
+  public setItemProbabilityMap(probabilities: { [key: number]: number }): Items {
+    let x = 0;
+    let array = new Array<number>(100);
+    Object.keys(probabilities).forEach((k) => {
+      const pn = probabilities[k] * 100;
+      for (let index = x; index < x+pn; index++) {
+        array[index] = parseInt(k);
+      }
+      x += pn
+    });
+    shuffle(array)
+    this.distributionArray = array;
+    return this;
+  }
+
+  private explodeItemOnPlayer(player: Phaser.Physics.Arcade.Sprite, explode: Phaser.Physics.Arcade.Sprite) {
+    this.emit(ITEM_EXPLODE_ONTO_PLAYER, player, explode);
+  }
+
+  private getItemDef(item: Phaser.Physics.Arcade.Sprite): IItemDef {
+    const type = item.getData('type') as number;
+    return ITEM_DEFS[type];
+  }
+
+  private checkCollectible(player: Phaser.Physics.Arcade.Sprite, item: Phaser.Physics.Arcade.Sprite) {
+    return this.getItemDef(item).collectible;
   }
 
   private collectItem(player: Phaser.Physics.Arcade.Sprite, item: Phaser.Physics.Arcade.Sprite) {
     item.disableBody(true, true);
-    this.emit('collectitem', item, player);
+    this.emit(ITEM_COLLECTED, item, player);
   }
 
   generateRandomItem(x: number, y: number) {
-    const type = Phaser.Math.Between(1, Object.keys(POINT_MAPS).length);
+    const type = this.distributionArray[Phaser.Math.Between(0, this.distributionArray.length - 1)];
+    const itemDef = ITEM_DEFS[type];
+    if (!itemDef || type === ItemType.NOTHING) return;
     const item = this.items.create(x, y, 'item') as Phaser.Physics.Arcade.Sprite;
     item.setVelocityY(80);
-    item.setData('type', ItemType.DAMAGE_ALL).setData('points', POINT_MAPS[type]);
+    item.setData('type', type).setData('points', itemDef.points).setData('def', itemDef);
   }
 
   collideWith(platforms: Phaser.Physics.Arcade.StaticGroup): Items {
-    this.scene.physics.add.collider(this.items, platforms, (item) => {
-      this.scene.time.delayedCall(this.ALIVE_TIME, (item: Phaser.Physics.Arcade.Sprite) => {
+    this.scene.physics.add.collider(this.items, platforms, (item: Phaser.Physics.Arcade.Sprite) => {
+      const itemDef = this.getItemDef(item);
+      this.scene.time.delayedCall(itemDef.aliveTime, (item: Phaser.Physics.Arcade.Sprite) => {
         item.disableBody(true, true);
+        itemDef.explosive && this.explosions.createExplosion(item.x, item.y);
       }, [item], this);
     }, null, this);
     return this;
