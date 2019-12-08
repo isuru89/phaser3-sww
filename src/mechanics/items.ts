@@ -58,13 +58,25 @@ export class Items extends EventEmitter {
     this.emit(ITEM_COLLECTED, item, player);
   }
 
-  generateRandomItem(x: number, y: number) {
-    const type = this.distributionArray[Phaser.Math.Between(0, this.distributionArray.length - 1)];
+  private dropItem(type: number, x: number, y: number) {
     const itemDef = ITEM_DEFS[type];
     if (!itemDef || type === ItemType.NOTHING) return;
     const item = this.items.create(x, y, 'item') as Phaser.Physics.Arcade.Sprite;
     item.setVelocityY(POWER_ITEM_FALLING_SPEED);
     item.setData('type', type).setData('points', itemDef.points).setData('def', itemDef);
+  }
+
+  generateItem(x: number, y: number) {
+    let type = this.distributionArray[Phaser.Math.Between(0, this.distributionArray.length - 1)];
+    while (type === ItemType.NOTHING) {
+      type = this.distributionArray[Phaser.Math.Between(0, this.distributionArray.length - 1)];
+    }
+    this.dropItem(type, x, y);
+  }
+
+  generateRandomItem(x: number, y: number) {
+    const type = this.distributionArray[Phaser.Math.Between(0, this.distributionArray.length - 1)];
+    this.dropItem(type, x, y);
   }
 
   collideWith(platforms: Phaser.Physics.Arcade.StaticGroup): Items {

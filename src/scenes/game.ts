@@ -144,6 +144,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   nextLevel() {
+    this.physics.pause();
     this.time.addEvent({
       delay: 2500,
       callback: () => this.scene.restart({ level: this.scoring.level + 1, score: this.scoring.score })
@@ -235,7 +236,7 @@ export class GameScene extends Phaser.Scene {
   private doFireNow() {
     if (this.scoring.hasAmmos()) {
       const { x, y } = this.player.body.position;
-      const fired = this.bullets.fire(x + this.player.body.width / 2, y);
+      const fired = this.bullets.fire(x + this.player.body.width / 2, y, this.player.body.touching.down);
       fired && this.scoring.updateAmmosBy(-1);
     }
   }

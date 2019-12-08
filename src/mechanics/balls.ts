@@ -75,9 +75,10 @@ export class Balls extends Phaser.Physics.Arcade.Group {
     ball.disableBody(true, true); 
     bullet.disableBody(true, true);
     
+    const airBullet = bullet.getData('air_bullet') as boolean || false;
     const x = ball.body.x + ball.body.width / 2;
     const y = ball.body.y + ball.body.height;
-    this.items.generateRandomItem(x, y);
+    airBullet ? this.items.generateItem(x, y) : this.items.generateRandomItem(x, y);
 
     this.explodeSingle(ball);
 

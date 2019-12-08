@@ -36,12 +36,13 @@ export class Bullets extends Phaser.Physics.Arcade.Group {
     }, [this], this);
   }
 
-  fire(x: number, y: number) {
+  fire(x: number, y: number, inAir: boolean = false) {
     const time = this.scene.time.now;
     if (this.lastFireTime < time - ((1 - this.shootingSpeed) * BULLETS_TIME_INTERVAL)) {
       const bullet = this.create(x, y, 'bullet') as Phaser.Physics.Arcade.Sprite;
       this.scene.sound.playAudioSprite('sfx', 'shot');
       bullet.setData('damage', this.bulletPower);
+      bullet.setData('air_bullet', inAir);
       bullet.setVelocityY(BULLET_UPWARD_SPEED);
       this.lastFireTime = time;
       return true;
