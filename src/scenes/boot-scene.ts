@@ -52,11 +52,11 @@ export class BootScene extends Phaser.Scene {
 
   private loadAssets() {
     const bult = [
-      '5555',
-      '5555',
-      '5555',
-      '5555',
-      '5555',
+      '6666',
+      '6556',
+      '6556',
+      '6556',
+      '6666',
     ]
     // var ufo = [
     //   '....55555555....',

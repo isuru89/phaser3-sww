@@ -6,7 +6,7 @@ export const LEVELS: Array<ILevelConfig> = [
     ammoCount: 20,
     initialPlayerPosition: 300,
     balls: [
-      { id: 1, x: 50, y: 300 , size: 3, initVelocityX: 120, initVelocityY: 275 } as BallConfigs
+      { id: 1, x: 50, y: 300 , size: 2, initVelocityX: 120, initVelocityY: 275 } as BallConfigs
     ],
     itemAvailability: {
       [ItemType.NOTHING]: .3,
