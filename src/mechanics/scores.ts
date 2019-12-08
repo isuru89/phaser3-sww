@@ -6,13 +6,16 @@ export class Scoring {
   private lives = 3;
   private scoreText: Phaser.GameObjects.Text;
 
-  constructor(private scene: Scene, public score: number = 0, private ammos: number = 50) {
+  constructor(private scene: Scene, 
+    public score: number = 0, 
+    private ammos: number = 50,
+    public level: number = 1) {
     this.initialScore = score;
   }
 
   render() {
     this.scoreText = this.scene.add.text(16, this.scene.cameras.main.height - 48, '', {
-      fontSize: '32px', fill: '#000000'
+      fontSize: '24px', fill: '#000000'
     });
     this.updateView();
   }
@@ -23,7 +26,7 @@ export class Scoring {
   }
 
   private updateView() {
-    this.scoreText.setText(`Score: ${this.score}, Lives: ${this.lives}, Ammo: ${this.ammos}`);
+    this.scoreText.setText(`Score: ${this.score}, Lives: ${this.lives}, Ammo: ${this.ammos}, Level: ${this.level}`);
   }
 
   updateAmmosBy(ammosDiff: number = -1) {

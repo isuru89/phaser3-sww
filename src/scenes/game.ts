@@ -36,7 +36,6 @@ export class GameScene extends Phaser.Scene {
   private playerPos = 120;
   private inactive = false;
 
-  private currentLevel: number;
   private levelData: ILevelConfig;
 
   constructor() {
@@ -45,10 +44,9 @@ export class GameScene extends Phaser.Scene {
 
   init(props: any) {
     const { level, score = 0 } = props;
-    this.currentLevel = level;
-    this.levelData = LEVELS[this.currentLevel - 1];
-    console.log("Level", this.currentLevel);
-    this.scoring = new Scoring(this, score, this.levelData.ammoCount);
+    this.levelData = LEVELS[level - 1];
+    console.log("Level", level);
+    this.scoring = new Scoring(this, score, this.levelData.ammoCount, level);
   }
 
   private createAnimations() {
@@ -148,7 +146,7 @@ export class GameScene extends Phaser.Scene {
   nextLevel() {
     this.time.addEvent({
       delay: 2500,
-      callback: () => this.scene.restart({ level: this.currentLevel + 1, score: this.scoring.score })
+      callback: () => this.scene.restart({ level: this.scoring.level + 1, score: this.scoring.score })
     })
   }
 
