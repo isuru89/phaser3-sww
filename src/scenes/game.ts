@@ -8,8 +8,9 @@ import { Balls } from "../mechanics/balls";
 import { Player } from "../mechanics/player";
 import { ALL_BALLS_CLEARED, ROBOT_KILL, ROBOT_EXPLODE_ONTO_PLAYER, ITEM_COLLECTED, ITEM_EXPLODE_ONTO_PLAYER, ROBOT_BULLET_HIT } from "../mechanics/events";
 import Explosions from "../mechanics/explosions";
-import { BallConfigs, ItemType, IItemDef, IRobotConfigs } from "../configs/config-models";
+import { BallConfigs, ItemType, IItemDef, IRobotConfigs, ILevelConfig } from "../configs/config-models";
 import { POINTS_ROBOT_KILL, POINTS_MULTIPLIER_FACTOR_WHEN_JUMPING, PLAYER_JUMP_VELOCITY, POINTS_ROBOT_HIT_WHILE_ADJUSTING, PLAYER_INITIAL_POSITION_Y } from "../configs/game-configs";
+import { LEVELS } from "../configs/levels";
 
 const { W, S, A, D, SPACE } = Input.Keyboard.KeyCodes;
 
@@ -35,10 +36,19 @@ export class GameScene extends Phaser.Scene {
   private playerPos = 120;
   private inactive = false;
 
+  private currentLevel: number;
+  private levelData: ILevelConfig;
+
   constructor() {
     super(sceneConfig);
+  }
 
-    this.scoring = new Scoring(this);
+  init(props: any) {
+    const { level, score = 0 } = props;
+    this.currentLevel = level;
+    this.levelData = LEVELS[this.currentLevel - 1];
+    console.log("Level", this.currentLevel);
+    this.scoring = new Scoring(this, score, this.levelData.ammoCount);
   }
 
   private createAnimations() {
@@ -90,18 +100,13 @@ export class GameScene extends Phaser.Scene {
 
     this.createAnimations();
 
-    this.playerPos = this.cameras.main.width / 2;
+    this.playerPos = this.levelData.initialPlayerPosition || this.cameras.main.width / 2;
 
     this.platforms = this.physics.add.staticGroup();
     this.platforms.create(400, 568, 'ground').setScale(2).refreshBody();
 
 
-    this.balls = new Balls(this, [ 
-      { id: 1, x: 50, y: 300 , size: 3, initVelocityX: 120, initVelocityY: 275 } as BallConfigs,
-      // { id: 2, x: 80, y: 250, size: 2, initVelocityX: 120, initVelocityY: 213 } as BallConfigs,
-      // { id: 3, x: 110, y: 200, size: 3, initVelocityX: 120, initVelocityY: 125 } as BallConfigs,
-      // { id: 4, x: 140, y: 150, size: 4, initVelocityX: 120, initVelocityY: 120 } as BallConfigs,
-    ]);  
+    this.balls = new Balls(this, [...this.levelData.balls]);  
     this.physics.add.collider(this.balls, this.platforms);
     
     this.player = new Player(this, this.playerPos, PLAYER_INITIAL_POSITION_Y);
@@ -110,31 +115,19 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.platforms);
     this.playerBallCollider = this.physics.add.collider(this.player, this.balls, this.playerKilled, null, this);
 
-    this.items = new Items(this, this.player, this.explosions).collideWith(this.platforms).setItemProbabilityMap({
-      [ItemType.ONE_UP]: .05,
-      [ItemType.BOMB]: .1,
-      [ItemType.BULLET_DAMAGE]: .15,
-      [ItemType.BONUS_POINTS]: .1,
-      [ItemType.BULLET_SPEED]: .1,
-      [ItemType.DAMAGE_ALL]: .05,
-      [ItemType.INVINCIBLE]: .1,
-      [ItemType.RUN_SPEED]: .1,
-      [ItemType.NOTHING]: .25,
-    });
+    this.items = new Items(this, this.player, this.explosions)
+      .collideWith(this.platforms)
+      .setItemProbabilityMap({...this.levelData.itemAvailability});
     this.items.on(ITEM_COLLECTED, this.collectItem.bind(this));
     this.items.on(ITEM_EXPLODE_ONTO_PLAYER, this.playerKilled.bind(this));
 
     this.balls.explodeWhenHitWith(this.bullets)
       .dropOneOfItemRandomly(this.items)
-      .on(ALL_BALLS_CLEARED, () => this.scene.restart())
+      .on(ALL_BALLS_CLEARED, () => this.nextLevel())
 
     this.robotsRef = new Robots(this, this.player, this.explosions).explodeWhenTouched(this.platforms)
       .damage(this.bullets)
-      .begin({
-        initialRobotDelay: 1000,
-        intervalRange: [500, 1000],
-        nextSpawnOnlyAfterKill: true
-      } as IRobotConfigs);
+      .begin(this.levelData.robotAvailability);
     this.robotsRef.on(ROBOT_EXPLODE_ONTO_PLAYER, this.playerKilled.bind(this));
     this.robotsRef.on(ROBOT_KILL, this.whenRobotKilled.bind(this));
     this.robotsRef.on(ROBOT_BULLET_HIT, this.whenRobotBulletHit.bind(this));
@@ -150,6 +143,13 @@ export class GameScene extends Phaser.Scene {
     this.input.on('pointerdown', () => {
       this.doFireNow();
     });
+  }
+
+  nextLevel() {
+    this.time.addEvent({
+      delay: 2500,
+      callback: () => this.scene.restart({ level: this.currentLevel + 1, score: this.scoring.score })
+    })
   }
 
   whenRobotBulletHit(robot: Phaser.Physics.Arcade.Sprite) {
@@ -235,9 +235,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private doFireNow() {
-    const { x, y } = this.player.body.position;
-    const fired = this.bullets.fire(x + this.player.body.width / 2, y);
-    fired && this.scoring.updateAmmosBy(-1);
+    if (this.scoring.hasAmmos()) {
+      const { x, y } = this.player.body.position;
+      const fired = this.bullets.fire(x + this.player.body.width / 2, y);
+      fired && this.scoring.updateAmmosBy(-1);
+    }
   }
 
   public update(time, delta) {

@@ -40,6 +40,6 @@ export interface ILevelConfig {
   initialPlayerPosition: number,
   ammoCount: number,
   balls: Array<BallConfigs>,
-  itemAvailability: Array<{[key: number]: number}>,
+  itemAvailability: {[key: number]: number},
   robotAvailability?: IRobotConfigs
 }

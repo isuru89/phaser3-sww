@@ -56,6 +56,7 @@ export const POINTS_MULTIPLIER_FACTOR_WHEN_JUMPING = 2;
 // power should be activated. After this much of time
 // the power will be over.
 export const POWER_ITEM_DEFAULT_ACTIVE_TIME = 8000;
+export const POWER_ITEM_FALLING_SPEED = 120;
 
 export const ITEM_DEFS: { [key: number]: IItemDef } = {
   [ItemType.ONE_UP]: {

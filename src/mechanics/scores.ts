@@ -4,10 +4,9 @@ export class Scoring {
 
   private initialScore: number;
   private lives = 3;
-  private ammos = 100;
   private scoreText: Phaser.GameObjects.Text;
 
-  constructor(private scene: Scene, private score: number = 0) {
+  constructor(private scene: Scene, public score: number = 0, private ammos: number = 50) {
     this.initialScore = score;
   }
 

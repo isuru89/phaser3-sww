@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import { ITEM_COLLECTED, ITEM_EXPLODE_ONTO_PLAYER } from "./events";
 import Explosions from "./explosions";
 import { IItemDef, ItemType } from "../configs/config-models";
-import { ITEM_DEFS } from "../configs/game-configs";
+import { ITEM_DEFS, POWER_ITEM_FALLING_SPEED } from "../configs/game-configs";
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -63,7 +63,7 @@ export class Items extends EventEmitter {
     const itemDef = ITEM_DEFS[type];
     if (!itemDef || type === ItemType.NOTHING) return;
     const item = this.items.create(x, y, 'item') as Phaser.Physics.Arcade.Sprite;
-    item.setVelocityY(80);
+    item.setVelocityY(POWER_ITEM_FALLING_SPEED);
     item.setData('type', type).setData('points', itemDef.points).setData('def', itemDef);
   }
 
