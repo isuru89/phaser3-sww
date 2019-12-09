@@ -1,0 +1,40 @@
+{
+  "frames": [
+    {
+      "filename": "item_oneup",
+      "frame": { "x": 0, "y": 0, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_damageall",
+      "frame": { "x": 0, "y": 16, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_invincible",
+      "frame": { "x": 0, "y": 32, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_bulletspeed",
+      "frame": { "x": 0, "y": 48, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_bonuspoints",
+      "frame": { "x": 0, "y": 64, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_runspeed",
+      "frame": { "x": 0, "y": 80, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_bullets",
+      "frame": { "x": 0, "y": 96, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_bulletdamage",
+      "frame": { "x": 0, "y": 112, "w": 32, "h": 16 }
+    },
+    {
+      "filename": "item_bomb",
+      "frame": { "x": 0, "y": 144, "w": 32, "h": 16 }
+    }
+  ]
+}

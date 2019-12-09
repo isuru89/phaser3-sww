@@ -61,7 +61,7 @@ export class Items extends EventEmitter {
   private dropItem(type: number, x: number, y: number) {
     const itemDef = ITEM_DEFS[type];
     if (!itemDef || type === ItemType.NOTHING) return;
-    const item = this.items.create(x, y, 'item') as Phaser.Physics.Arcade.Sprite;
+    const item = this.items.create(x, y, 'items', itemDef.sprite) as Phaser.Physics.Arcade.Sprite;
     item.setVelocityY(POWER_ITEM_FALLING_SPEED);
     item.setData('type', type).setData('points', itemDef.points).setData('def', itemDef);
   }
