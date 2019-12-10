@@ -5,6 +5,10 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = merge(base, {
 	mode: "production",
 	devtool: false,
+	output: {
+		filename: 'app.bundle.js',
+		path: __dirname
+	},
 	performance: {
 		maxEntrypointSize: 900000,
 		maxAssetSize: 900000

@@ -5,7 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dist": "webpack --config webpack.prod.config.js && mv dist/1.app.bundle.js dist/vendors.app.bundle.js",
+    "dist": "webpack --config webpack.prod.config.js && mv 1.app.bundle.js vendors.app.bundle.js",
     "build": "webpack",
     "dev": "webpack-dev-server"
   },
