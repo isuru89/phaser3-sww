@@ -1,7 +1,7 @@
 {
-  "name": "bridgebattle",
+  "name": "phaser3-sww",
   "version": "1.0.0",
-  "description": "Can you cross the bridge?",
+  "description": "Can you shoot the balls?",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
